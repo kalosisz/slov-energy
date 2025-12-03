@@ -116,7 +116,7 @@
 
       @media (min-width: 640px) {
         .form-grid {
-          grid-template-columns: 1.2fr 1.5fr;
+          grid-template-columns: 1fr 2fr;
           align-items: flex-start;
         }
       }
@@ -152,6 +152,7 @@
 
       input[type="number"] {
         -moz-appearance: textfield;
+        appearance: textfield;
       }
 
       .field-note {
@@ -183,9 +184,9 @@
 
       .member-row {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-columns: auto minmax(200px, 1fr) auto;
         gap: 8px;
-        align-items: center;
+        align-items: start;
       }
 
       .member-row label {
@@ -198,10 +199,18 @@
         gap: 2px;
       }
 
+      .age-input input[type="number"] {
+        width: 3.5rem;
+      }
+
       .member-weight {
         font-size: 0.8rem;
         color: var(--text-muted);
         white-space: nowrap;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 1.5rem;
       }
 
       .remove-btn {
@@ -212,6 +221,7 @@
         padding: 4px 6px;
         font-size: 0.9rem;
         border-radius: 999px;
+        margin-top: 1.5rem;
       }
 
       .remove-btn:hover {
@@ -335,9 +345,16 @@
         font-size: 0.84rem;
       }
 
+      .results-grid > div {
+        display: flex;
+        flex-direction: column;
+      }
+
       .stat-label {
         color: var(--text-muted);
         margin-bottom: 2px;
+        line-height: 1.4;
+        height: 3em;
       }
 
       .stat-value {
@@ -373,14 +390,14 @@
           <h1 id="main-title" class="title">Energy Help Eligibility</h1>
           <p class="subtitle">
             Check if your household can apply for energy help based on your
-            total monthly income and household size.
+            average monthly income and household size.
           </p>
         </header>
 
         <section class="rules" aria-label="Eligibility rules">
           <div><strong>Eligibility rule:</strong> Your household can apply if:</div>
           <div class="formula">
-            <code>total monthly income &lt; 1930 € × household size</code>
+            <code>average monthly income &lt; 1930 € × household size</code>
           </div>
           <ul>
             <li>The <strong>first member aged 14 or above</strong> counts as <strong>1.0</strong>.</li>
@@ -394,18 +411,18 @@
 
         <div class="form-grid">
           <section class="income-card" aria-label="Income input">
-            <h2 class="section-title">1. Total average monthly income between July 2024 and June 2025</h2>
-            <label for="income-input">Total average monthly income of the whole household (EUR)</label>
+            <h2 class="section-title">1. Total income between July 2024 and June 2025</h2>
+            <label for="income-input">Total income of the whole household (EUR)</label>
             <input
               id="income-input"
               type="number"
               min="0"
               step="0.01"
-              placeholder="e.g. 2200"
+              placeholder="e.g. 19937"
               inputmode="decimal"
             />
             <p class="field-note">
-              Add up all monthly incomes for every person in the household. In case of a salary,
+              Add up all incomes of every person in the household. In case of a salary,
               please use the gross (before tax) amount.
             </p>
             <p id="income-error" class="error" aria-live="polite"></p>
@@ -441,11 +458,11 @@
               <div id="stat-size" class="stat-value">–</div>
             </div>
             <div>
-              <div class="stat-label">Maximum income (EUR)</div>
+              <div class="stat-label">Maximum income per person (EUR)</div>
               <div id="stat-max-income" class="stat-value">–</div>
             </div>
             <div>
-              <div class="stat-label">Your income (EUR)</div>
+              <div class="stat-label">Your average income per person (EUR)</div>
               <div id="stat-income" class="stat-value">–</div>
             </div>
           </div>
@@ -497,7 +514,7 @@
         input.min = "0";
         input.max = "120";
         input.step = "1";
-        input.placeholder = "e.g. 35";
+        input.placeholder = "42";
         input.value = initialAge;
 
         ageWrapper.appendChild(label);
@@ -610,10 +627,10 @@
         resultPill.className = "pill pill-neutral";
       }
 
-      function updateResults({ size, maxIncome, income, eligible }) {
+      function updateResults({ size, maxIncomePerPerson, averageIncomePerPerson, eligible }) {
         statSize.textContent = size.toFixed(2);
-        statMaxIncome.textContent = formatMoney(maxIncome);
-        statIncome.textContent = formatMoney(income);
+        statMaxIncome.textContent = formatMoney(maxIncomePerPerson);
+        statIncome.textContent = formatMoney(averageIncomePerPerson);
 
         if (eligible) {
           resultMessage.textContent =
@@ -673,10 +690,12 @@
           return;
         }
 
-        const maxIncome = BASE_INCOME_PER_UNIT * size;
-        const eligible = income < maxIncome;
+        const monthlyIncome = income / 12;
+        const averageIncomePerPerson = monthlyIncome / size;
+        const maxIncomePerPerson = BASE_INCOME_PER_UNIT;
+        const eligible = averageIncomePerPerson < maxIncomePerPerson;
 
-        updateResults({ size, maxIncome, income, eligible });
+        updateResults({ size, maxIncomePerPerson, averageIncomePerPerson, eligible });
       }
 
       addMemberBtn.addEventListener("click", () => {
