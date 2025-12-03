@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Energy Help Eligibility Checker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #f3f5fb;
+        --card-bg: #ffffff;
+        --primary: #1e88e5;
+        --primary-dark: #1565c0;
+        --text-main: #1f2933;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+        --danger: #dc2626;
+        --success: #059669;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(circle at top left, #e0f2fe, #eef2ff 40%, #f9fafb);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 760px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border-radius: 18px;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+        padding: 24px 26px 26px;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      @media (min-width: 768px) {
+        .card {
+          padding: 28px 32px 32px;
+        }
+      }
+
+      .header {
+        margin-bottom: 18px;
+      }
+
+      .title {
+        margin: 0 0 6px;
+        font-size: 1.7rem;
+        letter-spacing: -0.03em;
+      }
+
+      .subtitle {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.96rem;
+        line-height: 1.4;
+      }
+
+      .rules {
+        margin: 16px 0 22px;
+        padding: 14px 14px 14px 16px;
+        border-radius: 12px;
+        background: radial-gradient(circle at top left, #eff6ff, #f9fafb);
+        border: 1px dashed #bfdbfe;
+        font-size: 0.9rem;
+        color: #1e3a8a;
+      }
+
+      .rules strong {
+        font-weight: 600;
+      }
+
+      .rules ul {
+        margin: 6px 0 0 20px;
+        padding: 0;
+      }
+
+      .rules li {
+        margin: 2px 0;
+      }
+
+      .section-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 18px 0 8px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      @media (min-width: 640px) {
+        .form-grid {
+          grid-template-columns: 1.2fr 1.5fr;
+          align-items: flex-start;
+        }
+      }
+
+      label {
+        display: block;
+        font-size: 0.86rem;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #374151;
+      }
+
+      input[type="number"] {
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        font-size: 0.95rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      input[type="number"]:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.23);
+      }
+
+      input[type="number"]::-webkit-outer-spin-button,
+      input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type="number"] {
+        -moz-appearance: textfield;
+      }
+
+      .field-note {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 3px;
+      }
+
+      .income-card {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #f9fafb;
+        padding: 12px 14px 14px;
+      }
+
+      .members-card {
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #f9fafb;
+        padding: 12px 14px 10px;
+      }
+
+      .members-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .member-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .member-row label {
+        margin-bottom: 0;
+      }
+
+      .age-input {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .member-weight {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        white-space: nowrap;
+      }
+
+      .remove-btn {
+        border: none;
+        background: transparent;
+        color: var(--danger);
+        cursor: pointer;
+        padding: 4px 6px;
+        font-size: 0.9rem;
+        border-radius: 999px;
+      }
+
+      .remove-btn:hover {
+        background: #fee2e2;
+      }
+
+      .add-member-btn {
+        margin-top: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        font-size: 0.85rem;
+        border-radius: 999px;
+        border: none;
+        background: rgba(37, 99, 235, 0.07);
+        color: var(--primary-dark);
+        cursor: pointer;
+      }
+
+      .add-member-btn:hover {
+        background: rgba(37, 99, 235, 0.15);
+      }
+
+      .actions {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      .primary-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.4);
+        transition: transform 0.1s ease, box-shadow 0.1s ease,
+          filter 0.1s ease;
+      }
+
+      .primary-btn:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.02);
+        box-shadow: 0 14px 28px rgba(37, 99, 235, 0.45);
+      }
+
+      .primary-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
+      }
+
+      .error {
+        font-size: 0.8rem;
+        color: var(--danger);
+        margin-top: 4px;
+      }
+
+      .results {
+        margin-top: 18px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 12px 14px;
+        background: #f9fafb;
+      }
+
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .results-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .pill {
+        padding: 2px 9px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .pill-eligible {
+        color: #064e3b;
+        background: #d1fae5;
+        border: 1px solid #6ee7b7;
+      }
+
+      .pill-not-eligible {
+        color: #7f1d1d;
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+      }
+
+      .pill-neutral {
+        color: #374151;
+        background: #e5e7eb;
+        border: 1px solid #d1d5db;
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        font-size: 0.84rem;
+      }
+
+      .stat-label {
+        color: var(--text-muted);
+        margin-bottom: 2px;
+      }
+
+      .stat-value {
+        font-weight: 600;
+      }
+
+      .message {
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+
+      .message-eligible {
+        color: var(--success);
+        font-weight: 600;
+      }
+
+      .message-not-eligible {
+        color: var(--danger);
+        font-weight: 600;
+      }
+
+      .footer-note {
+        margin-top: 10px;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section class="card" aria-labelledby="main-title">
+        <header class="header">
+          <h1 id="main-title" class="title">Energy Help Eligibility</h1>
+          <p class="subtitle">
+            Check if your household can apply for energy help based on your
+            total monthly income and household size.
+          </p>
+        </header>
+
+        <section class="rules" aria-label="Eligibility rules">
+          <div><strong>Eligibility rule:</strong> Your household can apply if:</div>
+          <div style="margin-top: 2px">
+            <code>total monthly income &lt; 1930 € × household size</code>
+          </div>
+          <ul>
+            <li>The <strong>first member aged 14 or above</strong> counts as <strong>1.0</strong>.</li>
+            <li>Every <strong>additional member aged 14 or above</strong> counts as <strong>0.7</strong>.</li>
+            <li>Each <strong>member below 14</strong> counts as <strong>0.5</strong>.</li>
+          </ul>
+        </section>
+
+        <div class="form-grid">
+          <section class="income-card" aria-label="Income input">
+            <h2 class="section-title">1. Total monthly income</h2>
+            <label for="income-input">Total income of the whole household (EUR)</label>
+            <input
+              id="income-input"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="e.g. 2200"
+              inputmode="decimal"
+            />
+            <p class="field-note">
+              Add up all net monthly incomes for every person in the household.
+            </p>
+            <p id="income-error" class="error" aria-live="polite"></p>
+          </section>
+
+          <section class="members-card" aria-label="Household members">
+            <h2 class="section-title">2. Household members</h2>
+            <p class="field-note">
+              Enter the age of everyone living in the same household.
+            </p>
+            <div id="members-list" class="members-list"></div>
+            <button id="add-member" type="button" class="add-member-btn">
+              + Add another member
+            </button>
+            <p id="members-error" class="error" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <div class="actions">
+          <button id="check-btn" type="button" class="primary-btn">
+            Check eligibility
+          </button>
+        </div>
+
+        <section class="results" aria-live="polite">
+          <div class="results-header">
+            <span class="results-title">Result</span>
+            <span id="result-pill" class="pill pill-neutral">Waiting for input</span>
+          </div>
+          <div class="results-grid">
+            <div>
+              <div class="stat-label">Household size</div>
+              <div id="stat-size" class="stat-value">–</div>
+            </div>
+            <div>
+              <div class="stat-label">Maximum income (EUR)</div>
+              <div id="stat-max-income" class="stat-value">–</div>
+            </div>
+            <div>
+              <div class="stat-label">Your income (EUR)</div>
+              <div id="stat-income" class="stat-value">–</div>
+            </div>
+          </div>
+          <p id="result-message" class="message"></p>
+          <p class="footer-note">
+            This tool is for guidance only and does not replace any official decision. All
+            calculations run only in your browser; no data is sent or stored anywhere.
+          </p>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const BASE_INCOME_PER_UNIT = 1930;
+
+      const incomeInput = document.getElementById("income-input");
+      const incomeError = document.getElementById("income-error");
+      const membersList = document.getElementById("members-list");
+      const membersError = document.getElementById("members-error");
+      const addMemberBtn = document.getElementById("add-member");
+      const checkBtn = document.getElementById("check-btn");
+
+      const statSize = document.getElementById("stat-size");
+      const statMaxIncome = document.getElementById("stat-max-income");
+      const statIncome = document.getElementById("stat-income");
+      const resultMessage = document.getElementById("result-message");
+      const resultPill = document.getElementById("result-pill");
+
+      function formatMoney(value) {
+        if (!isFinite(value)) return "–";
+        return value.toLocaleString("de-DE", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      }
+
+      function createMemberRow(initialAge = "") {
+        const row = document.createElement("div");
+        row.className = "member-row";
+
+        const ageWrapper = document.createElement("div");
+        ageWrapper.className = "age-input";
+
+        const label = document.createElement("label");
+        label.textContent = "Age";
+
+        const input = document.createElement("input");
+        input.type = "number";
+        input.min = "0";
+        input.max = "120";
+        input.step = "1";
+        input.placeholder = "e.g. 35";
+        input.value = initialAge;
+
+        ageWrapper.appendChild(label);
+        ageWrapper.appendChild(input);
+
+        const weightInfo = document.createElement("div");
+        weightInfo.className = "member-weight";
+        weightInfo.textContent = "Weight: –";
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "remove-btn";
+        removeBtn.textContent = "Remove";
+
+        removeBtn.addEventListener("click", () => {
+          if (membersList.children.length > 1) {
+            row.remove();
+          } else {
+            input.value = "";
+            updateWeightsPreview();
+          }
+        });
+
+        input.addEventListener("input", () => {
+          updateWeightsPreview();
+        });
+
+        row.appendChild(ageWrapper);
+        row.appendChild(weightInfo);
+        row.appendChild(removeBtn);
+
+        membersList.appendChild(row);
+      }
+
+      function getAges() {
+        const rows = Array.from(membersList.querySelectorAll(".member-row"));
+        return rows
+          .map((row) => {
+            const input = row.querySelector("input[type='number']");
+            const age = parseInt(input.value, 10);
+            return Number.isFinite(age) && age >= 0 ? age : null;
+          })
+          .filter((age) => age !== null);
+      }
+
+      function computeHouseholdSize(ages) {
+        if (!ages.length) return 0;
+
+        const adultsAndTeens = ages.filter((a) => a >= 14);
+        const children = ages.filter((a) => a < 14);
+
+        let size = 0;
+
+        if (adultsAndTeens.length > 0) {
+          size += 1; // first member 14+
+          if (adultsAndTeens.length > 1) {
+            size += (adultsAndTeens.length - 1) * 0.7;
+          }
+        }
+
+        size += children.length * 0.5;
+
+        return size;
+      }
+
+      function updateWeightsPreview() {
+        const rows = Array.from(membersList.querySelectorAll(".member-row"));
+        const ages = rows.map((row) => {
+          const input = row.querySelector("input[type='number']");
+          const age = parseInt(input.value, 10);
+          return Number.isFinite(age) && age >= 0 ? age : null;
+        });
+
+        const adultIndices = ages
+          .map((age, index) => (age !== null && age >= 14 ? index : null))
+          .filter((index) => index !== null);
+
+        rows.forEach((row, index) => {
+          const weightEl = row.querySelector(".member-weight");
+          const age = ages[index];
+
+          if (age === null) {
+            weightEl.textContent = "Weight: –";
+            return;
+          }
+
+          if (age >= 14) {
+            const isFirstAdult = adultIndices[0] === index;
+            weightEl.textContent = isFirstAdult
+              ? "Weight: 1.0 (first member ≥ 14)"
+              : "Weight: 0.7 (additional member ≥ 14)";
+          } else {
+            weightEl.textContent = "Weight: 0.5 (member < 14)";
+          }
+        });
+      }
+
+      function clearErrors() {
+        incomeError.textContent = "";
+        membersError.textContent = "";
+      }
+
+      function resetResults() {
+        statSize.textContent = "–";
+        statMaxIncome.textContent = "–";
+        statIncome.textContent = "–";
+        resultMessage.textContent = "";
+
+        resultPill.textContent = "Waiting for input";
+        resultPill.className = "pill pill-neutral";
+      }
+
+      function updateResults({ size, maxIncome, income, eligible }) {
+        statSize.textContent = size.toFixed(2);
+        statMaxIncome.textContent = formatMoney(maxIncome);
+        statIncome.textContent = formatMoney(income);
+
+        if (eligible) {
+          resultMessage.textContent =
+            "Your household is eligible for energy help based on this income.";
+          resultMessage.className = "message message-eligible";
+          resultPill.textContent = "Eligible";
+          resultPill.className = "pill pill-eligible";
+        } else {
+          resultMessage.textContent =
+            "Your household is not eligible for energy help at this income level.";
+          resultMessage.className = "message message-not-eligible";
+          resultPill.textContent = "Not eligible";
+          resultPill.className = "pill pill-not-eligible";
+        }
+      }
+
+      function validateInputs() {
+        clearErrors();
+
+        const incomeRaw = incomeInput.value.trim();
+        const income = parseFloat(incomeRaw.replace(",", "."));
+
+        let hasError = false;
+
+        if (!incomeRaw || !Number.isFinite(income) || income < 0) {
+          incomeError.textContent =
+            "Please enter a valid non-negative number for the total income.";
+          hasError = true;
+        }
+
+        const ages = getAges();
+        if (!ages.length) {
+          membersError.textContent =
+            "Please enter at least one household member with a valid age.";
+          hasError = true;
+        }
+
+        return {
+          hasError,
+          income: hasError ? null : income,
+          ages,
+        };
+      }
+
+      function handleCheck() {
+        const { hasError, income, ages } = validateInputs();
+        if (hasError || income === null) {
+          resetResults();
+          return;
+        }
+
+        const size = computeHouseholdSize(ages);
+        if (size <= 0) {
+          membersError.textContent =
+            "Household size is zero. Please check the ages entered.";
+          resetResults();
+          return;
+        }
+
+        const maxIncome = BASE_INCOME_PER_UNIT * size;
+        const eligible = income < maxIncome;
+
+        updateResults({ size, maxIncome, income, eligible });
+      }
+
+      addMemberBtn.addEventListener("click", () => {
+        createMemberRow();
+        updateWeightsPreview();
+      });
+
+      checkBtn.addEventListener("click", handleCheck);
+
+      incomeInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          handleCheck();
+        }
+      });
+
+      // Initialize with one empty member row
+      createMemberRow();
+      updateWeightsPreview();
+      resetResults();
+    </script>
+  </body>
+</html>
+
+
