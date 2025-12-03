@@ -85,12 +85,20 @@
       }
 
       .rules ul {
-        margin: 6px 0 0 20px;
+        margin: 0 0 0 1.25rem;
         padding: 0;
       }
 
       .rules li {
         margin: 2px 0;
+      }
+
+      .rules .formula {
+        margin: 0.5rem 0 0.5rem 1.5rem;
+        background-color: #f0f0f0;
+        padding: 0.5rem;
+        border-radius: 4px;
+        display: inline-block;
       }
 
       .section-title {
@@ -370,7 +378,7 @@
 
         <section class="rules" aria-label="Eligibility rules">
           <div><strong>Eligibility rule:</strong> Your household can apply if:</div>
-          <div style="margin-top: 2px">
+          <div class="formula">
             <code>total monthly income &lt; 1930 € × household size</code>
           </div>
           <ul>
