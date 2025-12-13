@@ -77,13 +77,49 @@
       </details>
 
       <div class="form-grid">
-        <section class="income-card" aria-label="Income input">
-          <h2 class="section-title">1. Total income between July 2024 and June 2025</h2>
-          <label for="income-input">Total income of the whole household (EUR)</label>
-          <input id="income-input" type="number" min="0" placeholder="e.g. 19937" inputmode="decimal" />
-          <p class="field-note">
-            Add up all incomes of every person in the household.
-          </p>
+        <section class="income-card" aria-label="Income inputs">
+          <h2 class="section-title">1. Household Income Categories</h2>
+          <p class="field-note">Enter values for the <strong>whole household</strong> for the relevant period.</p>
+
+          <div class="input-group">
+            <label for="income-employment">Employment Income (Príjem zo závislej činnosti)</label>
+            <input id="income-employment" type="number" min="0" placeholder="e.g. 12000" inputmode="decimal" />
+            <p class="field-help">Taxable income excluding specific exemptions (student brigades, etc.).</p>
+          </div>
+
+          <div class="input-group business-group">
+            <label for="income-business">Business & Other Self-employment (Partial Tax Base)</label>
+            <input id="income-business" type="number" min="0" placeholder="e.g. 8660" inputmode="decimal" />
+
+            <details class="advanced-options">
+              <summary>Adjust business duration (if less than 12 months)</summary>
+              <div class="sub-inputs">
+                <div>
+                  <label for="months-tax">Months in Tax Period (SZ_zo)</label>
+                  <input id="months-tax" type="number" min="1" max="12" placeholder="12" value="12" />
+                </div>
+                <div>
+                  <label for="months-decision">Months in Decision Period (SZ_t)</label>
+                  <input id="months-decision" type="number" min="0" max="12" placeholder="12" value="12" />
+                </div>
+              </div>
+            </details>
+            <p class="field-help">Partial tax base from §7 ods. 2 písm. c). Will be adjusted by coefficient K and
+              divided by 0.866.</p>
+          </div>
+
+          <div class="input-group">
+            <label for="income-pension">Pension Benefits (Dôchodkové dávky)</label>
+            <input id="income-pension" type="number" min="0" placeholder="e.g. 5000" inputmode="decimal" />
+            <p class="field-help">Old-age, invalidity, widow/widower, orphan pensions (excluding 13th pension).</p>
+          </div>
+
+          <div class="input-group">
+            <label for="income-service">Service Pension Benefits (Výsluhové dávky)</label>
+            <input id="income-service" type="number" min="0" placeholder="e.g. 0" inputmode="decimal" />
+            <p class="field-help">Service pensions for armed forces/police.</p>
+          </div>
+
           <p id="income-error" class="error" aria-live="polite"></p>
         </section>
 

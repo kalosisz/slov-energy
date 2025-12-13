@@ -1,13 +1,22 @@
 const BASE_INCOME_PER_UNIT = 1930;
 const MAX_AGE = 125;
 
-const incomeInput = document.getElementById("income-input");
+// Income Inputs
+const incomeEmploymentInput = document.getElementById("income-employment");
+const incomeBusinessInput = document.getElementById("income-business");
+const monthsTaxInput = document.getElementById("months-tax");
+const monthsDecisionInput = document.getElementById("months-decision");
+const incomePensionInput = document.getElementById("income-pension");
+const incomeServiceInput = document.getElementById("income-service");
 const incomeError = document.getElementById("income-error");
+
+// Member Inputs
 const membersList = document.getElementById("members-list");
 const membersError = document.getElementById("members-error");
 const addMemberBtn = document.getElementById("add-member");
-const checkBtn = document.getElementById("check-btn");
 
+// Actions & Results
+const checkBtn = document.getElementById("check-btn");
 const statSize = document.getElementById("stat-size");
 const statMaxIncome = document.getElementById("stat-max-income");
 const statIncome = document.getElementById("stat-income");
@@ -196,17 +205,38 @@ function updateResults({ size, maxIncomePerPerson, averageIncomePerPerson, eligi
 function validateInputs() {
     clearErrors();
 
-    const incomeRaw = incomeInput.value.trim();
-    const income = parseFloat(incomeRaw.replace(",", "."));
+    // Parse values (default to 0 or defaults)
+    const empRaw = incomeEmploymentInput.value.trim().replace(",", ".");
+    const busRaw = incomeBusinessInput.value.trim().replace(",", ".");
+    const penRaw = incomePensionInput.value.trim().replace(",", ".");
+    const svcRaw = incomeServiceInput.value.trim().replace(",", ".");
+
+    const mTaxRaw = monthsTaxInput.value.trim();
+    const mDecRaw = monthsDecisionInput.value.trim();
+
+    const emp = empRaw ? parseFloat(empRaw) : 0;
+    const bus = busRaw ? parseFloat(busRaw) : 0;
+    const pen = penRaw ? parseFloat(penRaw) : 0;
+    const svc = svcRaw ? parseFloat(svcRaw) : 0;
+
+    const mTax = mTaxRaw ? parseFloat(mTaxRaw) : 12;
+    const mDec = mDecRaw ? parseFloat(mDecRaw) : 12;
 
     let hasError = false;
 
-    if (!incomeRaw || !Number.isFinite(income) || income < 0) {
-        incomeError.textContent =
-            "Please enter a valid non-negative number for the total income.";
+    // Check income validity
+    if ([emp, bus, pen, svc].some(val => !Number.isFinite(val) || val < 0)) {
+        incomeError.textContent = "Please enter valid non-negative numbers for all income fields.";
         hasError = true;
     }
 
+    // Check months validity
+    if (!Number.isFinite(mTax) || mTax <= 0 || !Number.isFinite(mDec) || mDec < 0) {
+        incomeError.textContent = "Months must be valid positive numbers (max 12 normally)."; // Not strictly forcing max 12 if user has weird fiscal year but keeping simple
+        hasError = true;
+    }
+
+    // Check household members
     const ages = getAges();
     const validAges = ages.filter((age) => age !== null);
 
@@ -222,14 +252,15 @@ function validateInputs() {
 
     return {
         hasError,
-        income: hasError ? null : income,
+        incomes: { emp, bus, pen, svc },
+        months: { mTax, mDec },
         ages: validAges,
     };
 }
 
 function handleCheck() {
-    const { hasError, income, ages } = validateInputs();
-    if (hasError || income === null) {
+    const { hasError, incomes, months, ages } = validateInputs();
+    if (hasError) {
         resetResults();
         return;
     }
@@ -242,7 +273,25 @@ function handleCheck() {
         return;
     }
 
-    const monthlyIncome = income / 12;
+    // Calculate Households Total Income
+    const { emp, bus, pen, svc } = incomes;
+    const { mTax, mDec } = months;
+
+    // Business Income Formula: P_zo = (ZD_zo / 0.866) * K
+    // K = min(SZ_t / SZ_zo, 1)
+
+    // Prevent division by zero if monthsTax is 0 (though validated > 0, safe guard)
+    const safeTaxMonths = mTax > 0 ? mTax : 12;
+    const K = Math.min(mDec / safeTaxMonths, 1);
+
+    const businessComputed = (bus / 0.866) * K;
+
+    // Total Annual Income for the Decision Period
+    const totalIncome = emp + businessComputed + pen + svc;
+
+    // Average Monthly Income per Person
+    // (Total / 12) / Size
+    const monthlyIncome = totalIncome / 12;
     const averageIncomePerPerson = monthlyIncome / size;
     const maxIncomePerPerson = BASE_INCOME_PER_UNIT;
     const eligible = averageIncomePerPerson < maxIncomePerPerson;
@@ -257,28 +306,33 @@ addMemberBtn.addEventListener("click", () => {
 
 checkBtn.addEventListener("click", handleCheck);
 
-incomeInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        handleCheck();
-    }
-});
+// Attach Enter key support to all numeric inputs
+const allIncomeInputs = [
+    incomeEmploymentInput,
+    incomeBusinessInput,
+    monthsTaxInput,
+    monthsDecisionInput,
+    incomePensionInput,
+    incomeServiceInput
+];
 
-incomeInput.addEventListener("blur", () => {
-    const incomeRaw = incomeInput.value.trim();
-    if (!incomeRaw) {
-        incomeError.textContent = "";
-        incomeInput.classList.remove("input-error");
-        return;
-    }
-    const income = parseFloat(incomeRaw.replace(",", "."));
-    if (!Number.isFinite(income) || income < 0) {
-        incomeError.textContent = "Please enter a valid non-negative number.";
-        incomeInput.classList.add("input-error");
-    } else {
-        incomeError.textContent = "";
-        incomeInput.classList.remove("input-error");
-    }
+allIncomeInputs.forEach(input => {
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handleCheck();
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        // Simple visual feedback on blur could be added here
+        const val = parseFloat(input.value.trim().replace(",", "."));
+        if (input.value.trim() && (!Number.isFinite(val) || val < 0)) {
+            input.classList.add("input-error");
+        } else {
+            input.classList.remove("input-error");
+        }
+    });
 });
 
 // Initialize with one empty member row
